@@ -10,10 +10,28 @@ public class sdap2 {
 			String prod = rs.getString("prod");
 			int month = rs.getInt("month");
 			int quant = rs.getInt("quant");
-			Com newCom = new Com(name, prod, month);
-			combination.put(newCom, quant);
+			boolean contains = false;
+			Com newCom = new Com(name, prod, (month - 1) / 3 + 1);
+			for (Com c : combination.keySet()) {
+				if (c.equals(newCom)) {
+					contains = true;
+					combination.put(c, avgQuant(c, combination.get(c), quant));
+					break;
+				}
+			}
+			if (contains == false) {
+				combination.put(newCom, quant);
+			}
 		}
 		return combination;
+	}
+	
+	public static int avgQuant(Com com, int quantBefore, int quant) {
+		return (com.count * quantBefore + quant) / (++com.count);
+	}
+	
+	public void displayReport2(Map m) {
+		
 	}
 	
 	public static void main(String[] args) {
@@ -34,7 +52,9 @@ public class sdap2 {
 			System.out.println("Success connecting server!");
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery("SELECT * FROM Sales");
-			System.out.println(getCom(rs));
+			Map m = getCom(rs);
+			System.out.println(m);
+			
 		} catch (SQLException e) {
 			System.out.println("Connection URL or username or password errors!");
 			e.printStackTrace();
@@ -45,10 +65,20 @@ public class sdap2 {
 
 class Com {
 	String name, prod;
-	int month;
-	public Com(String name, String prod, int month) {
+	int quarter;
+	int count = 1;
+	
+	public Com(String name, String prod, int quarter) {
 		this.name = name;
 		this.prod = prod;
-		this.month = month;
+		this.quarter = quarter;
+	}
+	
+	public String toString() {
+		return name + "_" + prod + "_" + quarter;
+	}
+	
+	public boolean equals(Com c) {
+		return (this.name == c.name && this.prod == c.prod && this.quarter == c.quarter);
 	}
 }
