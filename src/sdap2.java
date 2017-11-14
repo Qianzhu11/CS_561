@@ -30,8 +30,43 @@ public class sdap2 {
 		return (com.count * quantBefore + quant) / (++com.count);
 	}
 	
-	public void displayReport2(Map m) {
-		
+	public static Map<Com, Integer> Report2(Map<Com, Integer> map) {
+		for (Map.Entry<Com, Integer> entry : map.entrySet()) {
+			Com c = entry.getKey();
+			Com before = new Com(c.name, c.prod, c.quarter - 1);
+			Com after = new Com(c.name, c.prod, c.quarter + 1);
+			for (Com com : map.keySet()) {
+				if (com.equals(before)) c.beforeAvg = map.get(com);
+				if (com.equals(after)) c.afterAvg = map.get(com);
+				if (c.quarter == 1) c.beforeAvg = 0;
+				if (c.quarter == 4) c.afterAvg = 0;
+			}
+		}
+		return map;
+	}
+	
+	public static void displayReport2(Map<Com, Integer> map) {
+		System.out.println("CUSTOMER PRODUCT QUARTER BEFORE_AVG AFTER_AVG");
+		System.out.println("======== ======= ======= ========== =========");
+		for (Map.Entry<Com, Integer> entry : map.entrySet()) {
+			Com c = entry.getKey();
+			if (c.quarter == 1) {
+				System.out.printf("%-8s %-7s %-7s %10s %9d%n", c.name, c.prod, quarterToString(c.quarter), "<NULL>", c.afterAvg);
+			}
+			if (c.quarter == 4) {
+				System.out.printf("%-8s %-7s %-7s %10d %9s%n", c.name, c.prod, quarterToString(c.quarter), c.beforeAvg, "<NULL>");
+			}
+			else if (c.quarter == 2 || c.quarter == 3) {
+				System.out.printf("%-8s %-7s %-7s %10d %9d%n", c.name, c.prod, quarterToString(c.quarter), c.beforeAvg, c.afterAvg);
+			}
+		}
+	}
+	
+	public static String quarterToString(int quarter) {
+		if (quarter == 1) return "Q1";
+		if (quarter == 2) return "Q2";
+		if (quarter == 3) return "Q3";
+		return "Q4";
 	}
 	
 	public static void main(String[] args) {
@@ -52,8 +87,8 @@ public class sdap2 {
 			System.out.println("Success connecting server!");
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery("SELECT * FROM Sales");
-			Map m = getCom(rs);
-			System.out.println(m);
+			Map<Com, Integer> m = Report2(getCom(rs));
+			displayReport2(m);
 			
 		} catch (SQLException e) {
 			System.out.println("Connection URL or username or password errors!");
@@ -65,8 +100,9 @@ public class sdap2 {
 
 class Com {
 	String name, prod;
-	int quarter;
+	int quarter, beforeAvg, afterAvg;
 	int count = 1;
+	Com before, after;
 	
 	public Com(String name, String prod, int quarter) {
 		this.name = name;
@@ -75,10 +111,11 @@ class Com {
 	}
 	
 	public String toString() {
-		return name + "_" + prod + "_" + quarter;
+		return name + " " + prod + " " + quarter + " " + beforeAvg + " " + afterAvg;
 	}
 	
 	public boolean equals(Com c) {
-		return (this.name == c.name && this.prod == c.prod && this.quarter == c.quarter);
+		boolean res =  (this.name.hashCode() == c.name.hashCode() && this.prod.hashCode() == c.prod.hashCode() && this.quarter == c.quarter);
+		return res;
 	}
 }

@@ -7,27 +7,10 @@ public class demo {
 	}
 	
 	public static void main(String[] args) {
-		Map<Com, Integer> combination = new HashMap<Com, Integer>();
-		int quant = 1;
-		Com newCom = new Com("a", "a", 1);
-		combination.put(newCom, 1);
-		Com c1 = new Com("a", "a", 1);
-		int quant1 = 3;
-		Com c2 = new Com("a", "a", 1);
-		int quant2 = 5;
-		boolean contains = false;
-		for (Com c : combination.keySet()) {
-			if (c.equals(c2)) {
-				contains = true;
-				combination.put(c, avgQuant(c, combination.get(c), quant2));
-				System.out.println(c.count);
-			}
-		}
-		if (contains == false) {
-			combination.put(c2, quant2);
-		}
-		
-		System.out.println(combination);
+		int a = 1;
+		System.out.println("CUSTOMER PRODUCT QUARTER BEFORE_AVG AFTER_AVG");
+		System.out.println("======== ======= ======= ========== =========");
+		System.out.printf("%-8s %-7s %-7s %10d %9d%n", "Emily", "Soap", "Q1", 22156, 415);
 	}
 }
 
