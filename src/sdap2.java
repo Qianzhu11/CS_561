@@ -3,6 +3,67 @@ import java.util.*;
 
 public class sdap2 {
 	
+	public static Map<ReportOne, Double> getReportOne(ResultSet rs) throws SQLException {
+		Map<ReportOne, Double> res = new HashMap<ReportOne, Double>();
+		while (rs.next()) {
+			String name = rs.getString("cust");
+			String prod = rs.getString("prod");
+			int quant = rs.getInt("quant");
+			boolean contains = false;
+			ReportOne ro = new ReportOne(name, prod);
+			for (ReportOne r : res.keySet()) {
+				if (r.equals(ro)) {
+					contains = true;
+					res.put(r, avg(r, res.get(r), quant));
+					break;
+				}
+			}
+			if (contains == false) res.put(ro, (double)quant);
+		}
+		return res;
+	}
+	
+	public static double avg(ReportOne ro, double quantBefore, int quant) {
+		return (ro.count * quantBefore + quant) / (++ro.count); 
+	}
+	
+	public static Map<ReportOne, int[]> result1(Map<ReportOne, Double> map) {
+		Map<ReportOne, int[]> res = new HashMap<ReportOne, int[]>();
+		for (Map.Entry<ReportOne, Double> map1 : map.entrySet()) {
+			int[] resData = new int[2];
+			ReportOne r = map1.getKey();
+			for (ReportOne ro : map.keySet()) {
+				
+			}
+		}
+		return res;
+	}
+	
+	public static Map<ReportOne, Double> report1(Map<ReportOne, Double> map) {
+		for (Map.Entry<ReportOne, Double> map1 : map.entrySet()) {
+			ReportOne ro = map1.getKey();
+			for (Map.Entry<ReportOne, Double> map2 : map.entrySet()) {
+				ReportOne newRo = map2.getKey();
+				if (newRo.name.equals(ro.name) && !newRo.prod.equals(ro.prod)) {
+					ro.otherProdAvg = ro.otherAvg(map2.getValue());
+				}
+				if (!newRo.name.equals(ro.name) && newRo.prod.equals(ro.prod)) {
+					ro.otherCustAvg = ro.otherCust(map2.getValue());
+				}
+			}
+		}
+		return map;
+	}
+	
+	public static void displayReportOne(Map<ReportOne, Double> map) {
+		System.out.println("CUSTOMER PRODUCT THE_AVG OTHER_PROD_AVG OTHER_CUST_AVG");
+		System.out.println("======== ======= ======= ============== ==============");
+		for (Map.Entry<ReportOne, Double> entry : map.entrySet()) {
+			ReportOne ro = entry.getKey();
+			System.out.printf("%-8s %-7s %7d %14d %14d%n", ro.name, ro.prod, (int)entry.getValue().doubleValue(), (int)ro.otherProdAvg, (int)ro.otherCustAvg);
+		}
+	}
+		
 	public static Map<Com, Integer> getCom(ResultSet rs) throws SQLException {
 		Map<Com, Integer> combination = new HashMap<Com, Integer>();
 		while (rs.next()) {
@@ -51,10 +112,10 @@ public class sdap2 {
 		for (Map.Entry<Com, Integer> entry : map.entrySet()) {
 			Com c = entry.getKey();
 			if (c.quarter == 1) {
-				System.out.printf("%-8s %-7s %-7s %10s %9d%n", c.name, c.prod, quarterToString(c.quarter), "<NULL>", c.afterAvg);
+				System.out.printf("%-8s %-7s %-7s %10s %9d%n", c.name, c.prod, "Q1", "<NULL>", c.afterAvg);
 			}
 			if (c.quarter == 4) {
-				System.out.printf("%-8s %-7s %-7s %10d %9s%n", c.name, c.prod, quarterToString(c.quarter), c.beforeAvg, "<NULL>");
+				System.out.printf("%-8s %-7s %-7s %10d %9s%n", c.name, c.prod, "Q4", c.beforeAvg, "<NULL>");
 			}
 			else if (c.quarter == 2 || c.quarter == 3) {
 				System.out.printf("%-8s %-7s %-7s %10d %9d%n", c.name, c.prod, quarterToString(c.quarter), c.beforeAvg, c.afterAvg);
@@ -63,10 +124,8 @@ public class sdap2 {
 	}
 	
 	public static String quarterToString(int quarter) {
-		if (quarter == 1) return "Q1";
 		if (quarter == 2) return "Q2";
-		if (quarter == 3) return "Q3";
-		return "Q4";
+		return "Q3";
 	}
 	
 	public static void main(String[] args) {
@@ -87,8 +146,9 @@ public class sdap2 {
 			System.out.println("Success connecting server!");
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery("SELECT * FROM Sales");
-			Map<Com, Integer> m = Report2(getCom(rs));
-			displayReport2(m);
+//			Map<Com, Integer> m = Report2(getCom(rs));
+//			displayReport2(m);
+			displayReportOne(report1(getReportOne(rs)));
 			
 		} catch (SQLException e) {
 			System.out.println("Connection URL or username or password errors!");
@@ -115,7 +175,33 @@ class Com {
 	}
 	
 	public boolean equals(Com c) {
-		boolean res =  (this.name.hashCode() == c.name.hashCode() && this.prod.hashCode() == c.prod.hashCode() && this.quarter == c.quarter);
-		return res;
+		return (this.name.hashCode() == c.name.hashCode() && this.prod.hashCode() == c.prod.hashCode() && this.quarter == c.quarter);
+	}
+}
+
+class ReportOne {
+	String name, prod;
+	int count = 1, prodCount = 0, custCount = 0;
+	double otherProdAvg, otherCustAvg;
+	
+	public ReportOne(String name, String prod) {
+		this.name = name;
+		this.prod = prod;
+	}
+	
+	public String toString() {
+		return this.name + " " + this.prod;
+	}
+	
+	public double otherAvg(Double double1) {
+		return ((this.otherProdAvg * this.prodCount + double1) / (++this.prodCount));
+	}
+
+	public double otherCust(Double double1) {
+		return ((this.otherCustAvg * this.custCount + double1) / (++this.custCount));
+	}
+	
+	public boolean equals(ReportOne ro) {
+		return (this.name.hashCode() == ro.name.hashCode() && this.prod.hashCode() == ro.prod.hashCode());
 	}
 }
