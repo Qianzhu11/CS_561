@@ -1,3 +1,9 @@
+/*
+ * The idea is the same as report1, the major difference is we use map to store data because the map is more efficient when we
+ * do insert and get operation. We also create an auxiliary class Com which indicates customer-product-quarter combination to represent element.
+ * the main part is similar to report1, after we get whole combinations, we get to compute the average quantity of its previous quarter and next quarter  
+ */
+
 import java.sql.*;
 import java.util.*;
 
@@ -11,11 +17,11 @@ public class Assignment2_2 {
 			int month = rs.getInt("month");
 			int quant = rs.getInt("quant");
 			boolean contains = false;
-			Com newCom = new Com(name, prod, (month - 1) / 3 + 1);
+			Com newCom = new Com(name, prod, (month - 1) / 3 + 1);	//we convert the month to its corresponding quarter
 			for (Com c : combination.keySet()) {
 				if (c.equals(newCom)) {
 					contains = true;
-					combination.put(c, avgQuant(c, combination.get(c), quant));
+					combination.put(c, avgQuant(c, combination.get(c), quant));	
 					break;
 				}
 			}
