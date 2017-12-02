@@ -8,7 +8,7 @@ import java.sql.*;
 import java.util.*;
 
 public class Assignment2_2 {
-		
+	static List<Com> remain = new ArrayList<Com>();
 	public static Map<Com, Integer> getCom(ResultSet rs) throws SQLException {
 		Map<Com, Integer> combination = new HashMap<Com, Integer>();
 		while (rs.next()) {
@@ -39,19 +39,55 @@ public class Assignment2_2 {
 	public static Map<Com, Integer> Report2(Map<Com, Integer> map) {
 		for (Map.Entry<Com, Integer> entry : map.entrySet()) {
 			Com c = entry.getKey();
+			int v = entry.getValue();
 			Com before = new Com(c.name, c.prod, c.quarter - 1);
 			Com after = new Com(c.name, c.prod, c.quarter + 1);
+			boolean beforeExist = false, afterExist = false;
 			for (Com com : map.keySet()) {
-				if (com.equals(before)) c.beforeAvg = map.get(com);
-				if (com.equals(after)) c.afterAvg = map.get(com);
+				if (com.equals(before)) {
+					beforeExist = true;
+					c.beforeAvg = map.get(com);
+				}
+				if (com.equals(after)) {
+					afterExist = true;
+					c.afterAvg = map.get(com);			
+				}
 				if (c.quarter == 1) c.beforeAvg = 0;
 				if (c.quarter == 4) c.afterAvg = 0;
 			}
+				
+			if (!beforeExist) {
+				boolean contain = false;
+				Com c1 = new Com(c.name, c.prod, c.quarter - 1);
+				c1.afterAvg = v;
+				Com c2 = new Com(c1.name, c1.prod, c1.quarter - 1);
+				for (Com com : map.keySet()) if (c2.equals(com)) c1.beforeAvg = map.get(com);
+				for (int i = 0; i < remain.size(); i++) {
+					if (c1.equals(remain.get(i))) contain = true;
+				}
+				if (!contain) remain.add(c1);
+			}
+					
+			if (!afterExist) {
+				boolean contain = false;
+				Com c1 = new Com(c.name, c.prod, c.quarter + 1);
+				c1.beforeAvg = v;
+				Com c2 = new Com(c1.name, c1.prod, c1.quarter + 1);
+				for (Com com : map.keySet()) if (c2.equals(com)) c1.afterAvg = map.get(com);
+				for (int i = 0; i < remain.size(); i++) {
+					if (c1.equals(remain.get(i))) contain = true;
+				}
+				if (!contain) remain.add(c1);
+			}
+		}
+		for (int i = 0; i < remain.size(); i++) {
+			map.put(remain.get(i), 0);
 		}
 		return map;
 	}
 	
 	public static void displayReport2(Map<Com, Integer> map) {
+		System.out.println(map.size());
 		System.out.println("CUSTOMER PRODUCT QUARTER BEFORE_AVG AFTER_AVG");
 		System.out.println("======== ======= ======= ========== =========");
 		for (Map.Entry<Com, Integer> entry : map.entrySet()) {
@@ -65,6 +101,7 @@ public class Assignment2_2 {
 			else if (c.quarter == 2 || c.quarter == 3) {
 				System.out.printf("%-8s %-7s %-7s %10d %9d%n", c.name, c.prod, quarterToString(c.quarter), c.beforeAvg, c.afterAvg);
 			}
+			
 		}
 	}
 	
